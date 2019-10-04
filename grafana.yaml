@@ -1,0 +1,161 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"grafana-ibp"}}'
+  name: grafana-ibp
+  labels:
+    grafana: ibp
+  namespace: openshift-monitoring
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: grafana-ibp
+  labels:
+    grafana: ibp
+  namespace: openshift-monitoring
+spec:
+  port:
+    targetPort: grafana
+  to:
+    kind: Service
+    name: grafana-ibp
+  tls:
+    termination: Reencrypt
+---
+apiVersion: v1
+data:
+  auth: aW50ZXJuYWw6e1NIQX1VMWJJT3VBYzBJOXR5QW9vRFF0enc3RDd3bmc9
+kind: Secret
+metadata:
+  name: grafana-ibp-htpasswd
+  labels:
+    grafana: ibp
+  namespace: openshift-monitoring
+type: Opaque
+---
+apiVersion: v1
+data:
+  session_secret: YW9CU2dRazdxaWNkQmRJcndaYWZ3ZVI4cWN0bnlRcWZLN016Tks5bE5lNklpckt6SU1zMVczRGVyZz09
+kind: Secret
+metadata:
+  name: grafana-ibp-proxy
+  labels:
+    grafana: ibp
+  namespace: openshift-monitoring
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-ibp
+  labels:
+    grafana: ibp
+  annotations:
+    service.alpha.openshift.io/serving-cert-secret-name: grafana-ibp-tls
+  namespace: openshift-monitoring
+spec:
+  ports:
+  - name: grafana
+    port: 443
+    targetPort: 8443
+  selector:
+    grafana: ibp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    grafana: ibp
+  name: grafana-ibp
+  namespace: openshift-monitoring
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      grafana: ibp
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        grafana: ibp
+    spec:
+      serviceAccountName: grafana-ibp
+      containers:
+        - name: oauth-proxy
+          image: registry.redhat.io/openshift3/oauth-proxy:v3.11.146
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 8443
+            name: public
+          args:
+          - --https-address=:8443
+          - --provider=openshift
+          - --openshift-service-account=grafana-ibp
+          - --upstream=http://localhost:3000
+          - -htpasswd-file=/etc/proxy/htpasswd/auth
+          - --tls-cert=/etc/tls/private/tls.crt
+          - --tls-key=/etc/tls/private/tls.key
+          - -cookie-secret-file=/etc/proxy/secrets/session_secret
+          - --pass-basic-auth=false
+          - -client-secret-file=/var/run/secrets/kubernetes.io/serviceaccount/token
+          - -cookie-secret-file=/etc/proxy/secrets/session_secret
+          - -openshift-ca=/etc/pki/tls/cert.pem
+          - -openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          volumeMounts:
+          - mountPath: /etc/tls/private
+            name: grafana-ibp-tls
+          - mountPath: /etc/proxy/secrets
+            name: grafana-ibp-proxy
+          - mountPath: /etc/proxy/htpasswd
+            name: grafana-ibp-htpasswd
+        - image: grafana/grafana:6.4.1
+          imagePullPolicy: IfNotPresent
+          name: grafana
+          env:
+          - name: GF_AUTH_BASIC_ENABLED
+            value: 'true'
+          - name: GF_AUTH_PROXY_ENABLED
+            value: 'true'
+          - name: GF_AUTH_PROXY_HEADER_NAME
+            value: 'X-Forwarded-User'
+          - name: GF_AUTH_PROXY_HEADER_PROPERTY
+            value: 'username'
+          - name: GF_AUTH_PROXY_AUTO_SIGN_UP
+            value: 'true'
+          - name: GF_AUTH_DISABLE_LOGIN_FORM
+            value: 'true'
+          - name: GF_USERS_ALLOW_SIGN_UP
+            value: 'false'
+          ports:
+            - containerPort: 3000
+              name: web
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 2500Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          volumeMounts:
+            - mountPath: /var/lib/grafana
+              name: data
+      volumes:
+        - emptyDir: {}
+          name: data
+        - name: grafana-ibp-tls
+          secret:
+            secretName: grafana-ibp-tls
+        - name: grafana-ibp-proxy
+          secret:
+            secretName: grafana-ibp-proxy
+        - name: grafana-ibp-htpasswd
+          secret:
+            secretName: grafana-ibp-htpasswd
