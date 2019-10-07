@@ -133,6 +133,8 @@ spec:
             value: 'true'
           - name: GF_USERS_ALLOW_SIGN_UP
             value: 'false'
+          - name: GF_SECURITY_ADMIN_USER
+            value: zz01le834
           ports:
             - containerPort: 3000
               name: web
