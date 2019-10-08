@@ -2,8 +2,8 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    ibp: os
-  name: ibp-os
+    ibp: org1
+  name: ibp-org1
   namespace: openshift-monitoring
 spec:
   endpoints:
@@ -11,14 +11,14 @@ spec:
     port: https
     scheme: https
     path: /metrics
-    targetPort: 8443
+    targetPort: 9443
     tlsConfig:
-      certFile: /etc/prometheus/secrets/os-monitoring-secret/osmonitoring.pem
-      keyFile: /etc/prometheus/secrets/os-monitoring-secret/osmonitoring.key
+      certFile: /etc/prometheus/secrets/org1-monitoring-secret/org1monitoring.pem
+      keyFile: /etc/prometheus/secrets/org1-monitoring-secret/org1monitoring.key
       insecureSkipVerify: true
   namespaceSelector:
     matchNames:
     - ibp
   selector:
     matchLabels:
-      app: ibp-os-metrics
+      app: ibp-org1-metrics

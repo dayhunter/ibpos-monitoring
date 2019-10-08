@@ -20,16 +20,6 @@ spec:
           - openshift-monitoring
           topologyKey: kubernetes.io/hostname
         weight: 100
-  # alerting:
-  #   alertmanagers:
-  #   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-  #     name: alertmanager-main
-  #     namespace: ibp
-  #     port: web
-  #     scheme: https
-  #     tlsConfig:
-  #       caFile: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
-  #       serverName: alertmanager-main.ibp.svc
   baseImage: registry.redhat.io/openshift3/prometheus
   containers:
   - args:
@@ -39,6 +29,7 @@ spec:
     - -email-domain=*
     - -upstream=http://localhost:9090
     - -htpasswd-file=/etc/proxy/htpasswd/auth
+    - -display-htpasswd-form=false
     - -openshift-service-account=prometheus-ibp
     - '-openshift-sar={"resource": "namespaces", "verb": "get"}'
     - '-openshift-delegate-urls={"/": {"resource": "namespaces", "verb": "get"}}'
@@ -66,20 +57,15 @@ spec:
     cluster: openshift.ocp2.poc.isd.th.ibm.com
   externalUrl: http://prometheus-ibp-openshift-monitoring.apps.ocp2.poc.isd.th.ibm.com/
   listenLocal: true
-  # nodeSelector:
-  #   node-role.kubernetes.io/infra: "true"
   replicas: 1
   resources: {}
   retention: 15d
-  # ruleSelector:
-  #   matchLabels:
-  #     prometheus: k8s
-  #     role: alert-rules
   secrets:
   - prometheus-ibp-tls
   - prometheus-ibp-proxy
   - prometheus-ibp-htpasswd
-  - os-operator-secret
+  - os-monitoring-secret # Rename this is necessary
+  - org1-monitoring-secret # Rename this is necessary
   securityContext: {}
   serviceAccountName: prometheus-ibp
   serviceMonitorNamespaceSelector:

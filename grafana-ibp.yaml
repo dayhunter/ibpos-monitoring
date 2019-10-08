@@ -100,6 +100,7 @@ spec:
           - --openshift-service-account=grafana-ibp
           - --upstream=http://localhost:3000
           - -htpasswd-file=/etc/proxy/htpasswd/auth
+          - -display-htpasswd-form=false
           - --tls-cert=/etc/tls/private/tls.crt
           - --tls-key=/etc/tls/private/tls.key
           - -cookie-secret-file=/etc/proxy/secrets/session_secret
@@ -150,8 +151,11 @@ spec:
             - mountPath: /var/lib/grafana
               name: data
       volumes:
-        - emptyDir: {}
-          name: data
+        - name: data 
+          emptyDir: {} # TODO: Need to persist this
+          # persistentVolumeClaim:
+          #   claimName: grafana-ibp
+          #   readOnly: false
         - name: grafana-ibp-tls
           secret:
             secretName: grafana-ibp-tls
@@ -161,3 +165,15 @@ spec:
         - name: grafana-ibp-htpasswd
           secret:
             secretName: grafana-ibp-htpasswd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-ibp
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: portworx-sc
