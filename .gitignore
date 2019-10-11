@@ -2,3 +2,4 @@
 *.pem
 .DS_Store
 *.json
+auth

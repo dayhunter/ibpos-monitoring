@@ -37,6 +37,13 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
    secret/os-monitoring-secret created
    ```
 
+5. Create secret for basic authentication of `Prometheus`. Remember the password set
+
+   ```bash
+   htpasswd -s -c auth ibp
+   oc create secret generic prometheus-ibp-htpasswd -n openshift-monitoring --from-file auth
+   ```
+
 ## Prometheus Deployment
 
 1. Create `ServiceAccount`, `ClusterRole` and `ClusterRoleBinding` and required `Secrets`:
