@@ -152,10 +152,8 @@ spec:
               name: data
       volumes:
         - name: data 
-          emptyDir: {} # TODO: Need to persist this
-          # persistentVolumeClaim:
-          #   claimName: grafana-ibp
-          #   readOnly: false
+          persistentVolumeClaim:
+            claimName: grafana-ibp
         - name: grafana-ibp-tls
           secret:
             secretName: grafana-ibp-tls
@@ -170,6 +168,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: grafana-ibp
+  namespace: openshift-monitoring
 spec:
   accessModes:
     - ReadWriteOnce
