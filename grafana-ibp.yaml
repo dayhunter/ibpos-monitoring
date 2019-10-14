@@ -136,6 +136,8 @@ spec:
             value: 'false'
           - name: GF_SECURITY_ADMIN_USER
             value: zz01le834
+          - name: GF_INSTALL_PLUGINS
+            value: michaeldmoore-multistat-panel
           ports:
             - containerPort: 3000
               name: web
@@ -150,8 +152,11 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/grafana
               name: data
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: grafana-ibp-datasources
       volumes:
         - name: data 
+          # emptyDir: {}
           persistentVolumeClaim:
             claimName: grafana-ibp
         - name: grafana-ibp-tls
@@ -163,6 +168,10 @@ spec:
         - name: grafana-ibp-htpasswd
           secret:
             secretName: grafana-ibp-htpasswd
+        - name: grafana-ibp-datasources
+          configMap:
+            defaultMode: 420
+            name: grafana-ibp-datasources
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -176,3 +185,26 @@ spec:
     requests:
       storage: 30Gi
   storageClassName: portworx-sc
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-ibp-datasources
+  namespace: openshift-monitoring
+data:
+  ibp.yaml: |-
+    apiVersion: 1
+    datasources:
+    - name: IBP
+      type: prometheus
+      access: proxy
+      orgId: 1
+      url: https://prometheus-ibp.openshift-monitoring.svc:9091
+      basicAuth: true
+      basicAuthUser: ibp
+      basicAuthPassword: monitoring
+      isDefault: true
+      jsonData:
+        tlsSkipVerify: true
+      version: 1
+      editable: false
