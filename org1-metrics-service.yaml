@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: ibp-org1-metrics
+  name: org1peer1-monitoring
   namespace: ibp
   labels:
     app: ibp-org1-metrics
@@ -14,4 +14,22 @@ spec:
   selector:
     app.kubernetes.io/instance: ibpoeer
     orgname: org1msp
-  
+    app: org1peer1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: org1peer2-monitoring
+  namespace: ibp
+  labels:
+    app: ibp-org1-metrics
+spec:
+  ports:
+  - name: https
+    port: 9443
+    protocol: TCP
+    targetPort: operations
+  selector:
+    app.kubernetes.io/instance: ibpoeer
+    orgname: org1msp
+    app: org1peer2

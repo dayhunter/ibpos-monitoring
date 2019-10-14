@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: ibp-os-metrics
+  name: os1-monitoring
   namespace: ibp
   labels:
     app: ibp-os-metrics
@@ -14,4 +14,76 @@ spec:
   selector:
     app.kubernetes.io/instance: ibporderer
     orgname: osmsp
-  
+    app: oskrgfu1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: os2-monitoring
+  namespace: ibp
+  labels:
+    app: ibp-os-metrics
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: operations
+  selector:
+    app.kubernetes.io/instance: ibporderer
+    orgname: osmsp
+    app: oskrgfu2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: os3-monitoring
+  namespace: ibp
+  labels:
+    app: ibp-os-metrics
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: operations
+  selector:
+    app.kubernetes.io/instance: ibporderer
+    orgname: osmsp
+    app: oskrgfu3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: os4-monitoring
+  namespace: ibp
+  labels:
+    app: ibp-os-metrics
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: operations
+  selector:
+    app.kubernetes.io/instance: ibporderer
+    orgname: osmsp
+    app: oskrgfu4
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: os5-monitoring
+  namespace: ibp
+  labels:
+    app: ibp-os-metrics
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: operations
+  selector:
+    app.kubernetes.io/instance: ibporderer
+    orgname: osmsp
+    app: oskrgfu5
