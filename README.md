@@ -37,7 +37,7 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
    secret/os-monitoring-secret created
    ```
 
-5. Create secret for basic authentication of `Prometheus`. Remember the password set
+5. Create secret for basic authentication of `Prometheus`. Remember the password set (use password: monitoring)
 
    ```bash
    htpasswd -s -c auth ibp
@@ -81,7 +81,7 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
 6. Trigger configuration refresh manually
 
    ```bash
-   oc exec prometheus-ibp-0 -c prometheus -- curl -X POST http://localhost:9090/-/reload
+   oc exec prometheus-ibp-0 -c prometheus -n openshift-monitoring -- curl -X POST http://localhost:9090/-/reload
    ```
 
 7. Visit prometheus endpoint and login using Openshift credential. To retrieve address:
