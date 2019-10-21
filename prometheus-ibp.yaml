@@ -54,8 +54,8 @@ spec:
     - mountPath: /etc/proxy/htpasswd
       name: secret-prometheus-ibp-htpasswd
   externalLabels:
-    cluster: openshift.ocp2.poc.isd.th.ibm.com
-  externalUrl: http://prometheus-ibp-openshift-monitoring.apps.ocp2.poc.isd.th.ibm.com/
+    cluster: openshift.ocp1.169-56-56-187.nip.io
+  externalUrl: http://prometheus-ibp-openshift-monitoring.apps.ocp1.169-56-56-187.nip.io/
   listenLocal: true
   replicas: 1
   resources: {}
@@ -84,7 +84,7 @@ spec:
         resources:
           requests:
             storage: 30Gi
-        storageClassName: glusterfs-sc
+        storageClassName: portworx-sc
       status: {}
   tag: v3.11.141-2
   version: v2.3.2

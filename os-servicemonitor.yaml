@@ -8,7 +8,7 @@ metadata:
 spec:
   endpoints:
   - interval: 30s
-    port: https
+    port: operations
     scheme: https
     path: /metrics
     targetPort: 8443
@@ -21,4 +21,4 @@ spec:
     - ibp
   selector:
     matchLabels:
-      app: ibp-os-metrics
+      orgname: osmsp
