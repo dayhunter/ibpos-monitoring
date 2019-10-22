@@ -71,26 +71,19 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
    oc apply -f org1-servicemonitor.yaml
    ```
 
-5. Create `Service` exposing the operations endpoint in `ibp` project/namespace
-
-   ```bash
-   oc apply -f os-metrics-service.yaml
-   oc apply -f org1-metrics-service.yaml
-   ```
-
-6. Trigger configuration refresh manually
+5. Trigger configuration refresh manually
 
    ```bash
    oc exec prometheus-ibp-0 -c prometheus -n openshift-monitoring -- curl -X POST http://localhost:9090/-/reload
    ```
 
-7. Visit prometheus endpoint and login using Openshift credential. To retrieve address:
+6. Visit prometheus endpoint and login using Openshift credential. To retrieve address:
   
    ```bash
    echo "https://$(oc get routes prometheus-ibp -n openshift-monitoring -o json | jq -r .spec.host)"
    ```
 
-8. Go to **Status** > **Targets** and a similar screen should be shown:
+7. Go to **Status** > **Targets** and a similar screen should be shown:
 
    ![Screenshot](./img/prom-ss.png)
 
