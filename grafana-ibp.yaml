@@ -6,7 +6,7 @@ metadata:
   name: grafana-ibp
   labels:
     grafana: ibp
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 ---
 apiVersion: route.openshift.io/v1
 kind: Route
@@ -14,7 +14,7 @@ metadata:
   name: grafana-ibp
   labels:
     grafana: ibp
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 spec:
   port:
     targetPort: grafana
@@ -32,7 +32,7 @@ metadata:
   name: grafana-ibp-htpasswd
   labels:
     grafana: ibp
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 type: Opaque
 ---
 apiVersion: v1
@@ -43,7 +43,7 @@ metadata:
   name: grafana-ibp-proxy
   labels:
     grafana: ibp
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 type: Opaque
 ---
 apiVersion: v1
@@ -54,7 +54,7 @@ metadata:
     grafana: ibp
   annotations:
     service.alpha.openshift.io/serving-cert-secret-name: grafana-ibp-tls
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 spec:
   ports:
   - name: grafana
@@ -69,7 +69,7 @@ metadata:
   labels:
     grafana: ibp
   name: grafana-ibp
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -156,9 +156,9 @@ spec:
               name: grafana-ibp-datasources
       volumes:
         - name: data 
-          # emptyDir: {}
-          persistentVolumeClaim:
-            claimName: grafana-ibp
+          emptyDir: {}
+          # persistentVolumeClaim:
+          #   claimName: grafana-ibp
         - name: grafana-ibp-tls
           secret:
             secretName: grafana-ibp-tls
@@ -177,7 +177,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: grafana-ibp
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 spec:
   accessModes:
     - ReadWriteOnce
@@ -190,7 +190,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-ibp-datasources
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 data:
   ibp.yaml: |-
     apiVersion: 1
@@ -199,7 +199,7 @@ data:
       type: prometheus
       access: proxy
       orgId: 1
-      url: https://prometheus-ibp.openshift-monitoring.svc:9091
+      url: https://prometheus-ibp.ibp-monitoring.svc:9091
       basicAuth: true
       basicAuthUser: ibp
       basicAuthPassword: monitoring

@@ -6,7 +6,7 @@ metadata:
   labels:
     prometheus: ibp
   name: prometheus-ibp
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 spec:
   ports:
     - name: web
@@ -22,7 +22,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: prometheus-ibp
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 spec:
   port:
     targetPort: web

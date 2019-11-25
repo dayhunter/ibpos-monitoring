@@ -4,22 +4,8 @@ metadata:
   labels:
     prometheus: ibp
   name: ibp
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 spec:
-  affinity:
-    podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - podAffinityTerm:
-          labelSelector:
-            matchExpressions:
-            - key: prometheus
-              operator: In
-              values:
-              - ibp
-          namespaces:
-          - openshift-monitoring
-          topologyKey: kubernetes.io/hostname
-        weight: 100
   baseImage: registry.redhat.io/openshift3/prometheus
   containers:
   - args:
@@ -55,7 +41,7 @@ spec:
       name: secret-prometheus-ibp-htpasswd
   externalLabels:
     cluster: openshift.ocp1.169-56-56-187.nip.io
-  externalUrl: http://prometheus-ibp-openshift-monitoring.apps.ocp1.169-56-56-187.nip.io/
+  externalUrl: http://prometheus-ibp-ibp-monitoring.apps.ocp1.169-56-56-187.nip.io/
   listenLocal: true
   replicas: 1
   resources: {}
@@ -70,7 +56,7 @@ spec:
   serviceAccountName: prometheus-ibp
   serviceMonitorNamespaceSelector:
     matchExpressions:
-    - key: openshift-monitoring
+    - key: ibp-monitoring
       operator: Exists
   serviceMonitorSelector:
     matchExpressions:

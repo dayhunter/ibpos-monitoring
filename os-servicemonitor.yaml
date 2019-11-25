@@ -4,10 +4,10 @@ metadata:
   labels:
     ibp: os
   name: ibp-os
-  namespace: openshift-monitoring
+  namespace: ibp-monitoring
 spec:
   endpoints:
-  - interval: 30s
+  - interval: 15s
     port: operations
     scheme: https
     path: /metrics
