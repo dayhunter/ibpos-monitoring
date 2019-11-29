@@ -79,18 +79,23 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
 6. Replace project name to config file and access to project folder
 
    ```bash
-   bash generate-project.sh <project-name>
+   bash generate-prometheus.sh <project-name>
    ```
 
-   Example
+   Example:
    ```bash
-   bash generate-project.sh ibp
+   bash generate-prometheus.sh ibp
    ```
 
 7. Create organisation `ServiceMonitor` config file
 
    Verify orgname by get `MSP` and `Port` from following command
 
+   ```bash
+   oc get svc --show-labels -l orgname -n <project-name>
+   ```
+
+   Example:
    ```bash
    oc get svc --show-labels -l orgname -n ibp
    NAME                TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                       AGE       LABELS
@@ -109,7 +114,7 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
    bash generate-service-monitor.sh <project-name> <msp> <port>
    ```
 
-   Example
+   Example:
    ```bash
    bash generate-service-monitor.sh ibp osmsp 8443
    bash generate-service-monitor.sh ibp org1msp 9443
@@ -126,7 +131,7 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
 
    in `secret` session replace `- <project-name>-<msp>-monitoring-secret` secret (under htpasswd) from step 3
    
-   Example
+   Example:
    ```
    - ibp-osmsp-monitoring-secret
    - ibp-org1msp-monitoring-secret
@@ -163,7 +168,7 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
    oc apply -f <msp>-servicemonitor.yaml
    ```
 
-   Example
+   Example:
    ```bash
    oc apply -f osmsp-servicemonitor.yaml
    oc apply -f org1msp-servicemonitor.yaml
@@ -175,7 +180,7 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
    oc exec prometheus-<project-name>-0 -c prometheus -n ibp-monitoring -- curl -X POST http://localhost:9090/-/reload
    ```
 
-   Example
+   Example:
    ```bash
    oc exec prometheus-ibp-0 -c prometheus -n ibp-monitoring -- curl -X POST http://localhost:9090/-/reload
    ```
@@ -186,7 +191,7 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
    echo "https://$(oc get routes prometheus-<project-name> -n ibp-monitoring -o json | jq -r .spec.host)"
    ```
 
-   Example
+   Example:
    ```bash
    echo "https://$(oc get routes prometheus-ibp -n ibp-monitoring -o json | jq -r .spec.host)"
    ```

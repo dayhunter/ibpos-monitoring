@@ -2,6 +2,11 @@
 
 set -e
 
+if [ "$#" -ne 1 ]; then
+  echo "Please run 'bash generate-prometheus.sh <project-name>'" >&2
+  exit 1
+fi
+
 echo -e "Environment variables:"
 echo "PROJECT NAME=$1"
 
