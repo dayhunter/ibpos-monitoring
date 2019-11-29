@@ -22,21 +22,25 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
 3. Decode the certificates and private keys:
 
    ```console
-   jq -r .private_key org1monitoring.json | base64 --decode > org1monitoring.key
-   jq -r .cert org1monitoring.json | base64 --decode > org1monitoring.pem
-   jq -r .private_key osmonitoring.json | base64 --decode > osmonitoring.key
-   jq -r .cert osmonitoring.json | base64 --decode > osmonitoring.pem
+   jq -r .private_key org1monitoring.json | base64 --decode > org1mspmonitoring.key
+   jq -r .cert org1monitoring.json | base64 --decode > org1mspmonitoring.pem
+   jq -r .private_key osmonitoring.json | base64 --decode > osmspmonitoring.key
+   jq -r .cert osmonitoring.json | base64 --decode > osmspmonitoring.pem
    ```
 
 ## Prometheus Deployment
 
-1. Create project `ibp-monitoring`
+1. (Optional) Create project `ibp-monitoring`
+
+   Note: This task can skip if this project `ibp-monitoring` exists in cluster
 
    ```console
    oc new-project ibp-monitoring
    ```
 
-2. Deploy a Prometheus operator using OLM
+2. (Optional) Deploy a Prometheus operator using OLM
+
+   Note: This task can skip if this `prometheus-operator` exists in project
 
    Create subscription in project `ibp-monitoring`
    ![OLM](./img/olm1.png)
@@ -46,68 +50,154 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
 
 3. Create secret
 
+   Secret name should be `<project-name>-<msp>-monitoring-secret`
+
    ```console
-   $ oc create secret generic org1-monitoring-secret --from-file=./org1monitoring.pem --from-file=./org1monitoring.key -n ibp-monitoring
-   secret/org1-monitoring-secret created
-   $ oc create secret generic os-monitoring-secret --from-file=./osmonitoring.pem --from-file=./osmonitoring.key -n ibp-monitoring
-   secret/os-monitoring-secret created
+   $ oc create secret generic ibp-org1msp-monitoring-secret --from-file=./org1mspmonitoring.pem --from-file=./org1mspmonitoring.key -n ibp-monitoring
+   secret/ibp-org1msp-monitoring-secret created
+   $ oc create secret generic ibp-osmsp-monitoring-secret --from-file=./osmspmonitoring.pem --from-file=./osmspmonitoring.key -n ibp-monitoring
+   secret/ibp-osmsp-monitoring-secret created
    ```
 
-4. Create secret for basic authentication of `Prometheus`. Remember the password set (use password: monitoring)
+4. (Optional) Create `ClusterRole:
+
+   Note: This task can skip if this ClusterRole `prometheus-ibp` exists in cluster
+
+   ```bash
+   oc apply -f clusterrole.yaml
+   ```
+
+5. Create secret for basic authentication of `Prometheus`. Remember the password set (use password: monitoring)
+
+   Replace `<project-name> to your project
 
    ```bash
    htpasswd -s -c auth ibp
-   oc create secret generic prometheus-ibp-htpasswd -n ibp-monitoring --from-file auth
+   oc create secret generic prometheus-<project-name>-htpasswd -n ibp-monitoring --from-file auth
    ```
 
-5. Create required `Secrets`:
+6. Replace project name to config file and access to project folder
+
+   ```bash
+   bash generate-project.sh <project-name>
+   ```
+
+   Example
+   ```bash
+   bash generate-project.sh ibp
+   ```
+
+7. Create organisation `ServiceMonitor` config file
+
+   Verify orgname by get `MSP` and `Port` from following command
+
+   ```bash
+   oc get svc --show-labels -l orgname -n ibp
+   NAME                TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                       AGE       LABELS
+   org1peer1-service   NodePort   172.30.246.116   <none>        7051:30445/TCP,9443:31164/TCP,8080:31137/TCP,7443:32148/TCP   49d       app.kubernetes.io/instance=ibpoeer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=org1peer1,creator=ibp,helm.sh/chart=ibm-ibp,orgname=org1msp,release=operator
+   org1peer3-service   NodePort   172.30.50.37     <none>        7051:31166/TCP,9443:32422/TCP,8080:32119/TCP,7443:30392/TCP   37d       app.kubernetes.io/instance=ibpoeer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=org1peer3,creator=ibp,helm.sh/chart=ibm-ibp,orgname=org1msp,release=operator
+   oskrgfu1-service    NodePort   172.30.213.217   <none>        7050:31787/TCP,8443:31642/TCP,8080:31558/TCP,7443:30354/TCP   49d       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=oskrgfu1,creator=ibp,helm.sh/chart=ibm-ibp,orgname=osmsp,release=operator
+   oskrgfu2-service    NodePort   172.30.100.244   <none>        7050:32626/TCP,8443:30471/TCP,8080:32475/TCP,7443:30468/TCP   49d       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=oskrgfu2,creator=ibp,helm.sh/chart=ibm-ibp,orgname=osmsp,release=operator
+   oskrgfu3-service    NodePort   172.30.181.74    <none>        7050:30008/TCP,8443:32180/TCP,8080:31279/TCP,7443:30907/TCP   49d       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=oskrgfu3,creator=ibp,helm.sh/chart=ibm-ibp,orgname=osmsp,release=operator
+   oskrgfu4-service    NodePort   172.30.120.240   <none>        7050:32427/TCP,8443:31489/TCP,8080:31176/TCP,7443:31910/TCP   49d       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=oskrgfu4,creator=ibp,helm.sh/chart=ibm-ibp,orgname=osmsp,release=operator
+   oskrgfu5-service    NodePort   172.30.9.238     <none>        7050:31280/TCP,8443:31244/TCP,8080:31171/TCP,7443:31937/TCP   49d       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=oskrgfu5,creator=ibp,helm.sh/chart=ibm-ibp,orgname=osmsp,release=operator
+   ```
+ 
+   You will find `orgname=osmsp`, `orgname=org1msp` and port `8443`, `9443`. Replace 2 values in the command to generate Service Monitor config file.
+
+   ```bash
+   bash generate-service-monitor.sh <project-name> <msp> <port>
+   ```
+
+   Example
+   ```bash
+   bash generate-service-monitor.sh ibp osmsp 8443
+   bash generate-service-monitor.sh ibp org1msp 9443
+   ```
+
+8. Update `Prometheus` config
+
+   Open prometheus config file
+
+   ```bash
+   cd proj-<project-name>
+   vi prometheus.yaml
+   ```
+
+   in `secret` session replace `- <project-name>-<msp>-monitoring-secret` secret (under htpasswd) from step 3
+   
+   Example
+   ```
+   - ibp-osmsp-monitoring-secret
+   - ibp-org1msp-monitoring-secret
+   ```
+
+9. Create required `Secrets`:
 
    ```bash
    oc apply -f secrets.yaml
    ```
 
-6. Create `ServiceAccount`, `ClusterRole` and `ClusterRoleBinding`:
+10. Create `ServiceAccount` and `ClusterRoleBinding`:
 
    ```bash
    oc apply -f serviceaccount.yaml
+   oc apply -f clusterrolebinding.yaml
    ```
 
-7. Create `Service` and `Route`. TLS secret for prometheus proxy will be created automatically (Refer to <https://docs.openshift.com/container-platform/3.11/dev_guide/secrets.html#service-serving-certificate-secrets)>
+11. Create `Service` and `Route`. TLS secret for prometheus proxy will be created automatically (Refer to <https://docs.openshift.com/container-platform/3.11/dev_guide/secrets.html#service-serving-certificate-secrets)>
 
     ```bash
-    oc apply -f prometheus-service.yaml
+    oc apply -f service-route.yaml
     ```
 
-8. Create `Prometheus` instance
+12. Create `Prometheus` instance
 
    ```bash
-   oc apply -f prometheus-ibp.yaml
+   oc apply -f prometheus.yaml
    ```
 
-9.  Create `ServiceMonitor` for Ordering service and Peer
+13.  Create `ServiceMonitor` for Ordering service and Peer
 
    ```bash
-   oc apply -f os-servicemonitor.yaml
-   oc apply -f org1-servicemonitor.yaml
+   oc apply -f <msp>-servicemonitor.yaml
    ```
 
-11. Trigger configuration refresh manually
+   Example
+   ```bash
+   oc apply -f osmsp-servicemonitor.yaml
+   oc apply -f org1msp-servicemonitor.yaml
+   ```
 
+14. Trigger configuration refresh manually
+
+   ```bash
+   oc exec prometheus-<project-name>-0 -c prometheus -n ibp-monitoring -- curl -X POST http://localhost:9090/-/reload
+   ```
+
+   Example
    ```bash
    oc exec prometheus-ibp-0 -c prometheus -n ibp-monitoring -- curl -X POST http://localhost:9090/-/reload
    ```
 
-11. Visit prometheus endpoint and login using Openshift credential. To retrieve address:
+15. Visit prometheus endpoint and login using Openshift credential. To retrieve address:
   
+   ```bash
+   echo "https://$(oc get routes prometheus-<project-name> -n ibp-monitoring -o json | jq -r .spec.host)"
+   ```
+
+   Example
    ```bash
    echo "https://$(oc get routes prometheus-ibp -n ibp-monitoring -o json | jq -r .spec.host)"
    ```
 
-12. Go to **Status** > **Targets** and a similar screen should be shown:
+16. Go to **Status** > **Targets** and a similar screen should be shown:
 
    ![Screenshot](./img/prom-ss.png)
 
-## Grafana Deployment
+## (Optional) Grafana Deployment
+
+Note: This task can skip if Grafana exists in cluster
 
 1. In `grafana.yaml`, search for `GF_SECURITY_ADMIN_USER` and change the value to your Openshift username
 
