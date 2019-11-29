@@ -15,17 +15,17 @@ If OLM is installed, a Prometheus operator can be deployed to a separate project
 
 Retrieving metrics from the peer and orderer requires mutual TLS authentication, so we need to generate certificate-key pairs for both the orderer organization and peer organization
 
-1. In **IBP console**, go to **Nodes** > **org1ca** (the CA of the peer organization). Register a new user with enroll ID `monitoring` and enroll secret `monitoringpw`. Enroll this user against the **TLS Certificate Authority** and download the wallet. The file name of the wallet is assumed to be `org1monitoring.json`
+1. In **IBP console**, go to **Nodes** > **org1ca** (the CA of the peer organization). Register a new user with enroll ID `monitoring` and enroll secret `monitoringpw`. Enroll this user against the **TLS Certificate Authority** and download the wallet. The file name of the wallet is assumed to be `org1mspmonitoring.json`
 
-2. In **IBP console**, go to **Nodes** > **osca** (the CA of the orderer organization). Register a new user with enroll ID `monitoring` and enroll secret `monitoringpw`. Enroll this user against the **TLS Certificate Authority** and download the wallet. The file name of the wallet is assumed to be `osmonitoring.json`
+2. In **IBP console**, go to **Nodes** > **osca** (the CA of the orderer organization). Register a new user with enroll ID `monitoring` and enroll secret `monitoringpw`. Enroll this user against the **TLS Certificate Authority** and download the wallet. The file name of the wallet is assumed to be `osmspmonitoring.json`
 
 3. Decode the certificates and private keys:
 
    ```console
-   jq -r .private_key org1monitoring.json | base64 --decode > org1mspmonitoring.key
-   jq -r .cert org1monitoring.json | base64 --decode > org1mspmonitoring.pem
-   jq -r .private_key osmonitoring.json | base64 --decode > osmspmonitoring.key
-   jq -r .cert osmonitoring.json | base64 --decode > osmspmonitoring.pem
+   jq -r .private_key org1mspmonitoring.json | base64 --decode > org1mspmonitoring.key
+   jq -r .cert org1mspmonitoring.json | base64 --decode > org1mspmonitoring.pem
+   jq -r .private_key osmspmonitoring.json | base64 --decode > osmspmonitoring.key
+   jq -r .cert osmspmonitoring.json | base64 --decode > osmspmonitoring.pem
    ```
 
 ## Prometheus Deployment
