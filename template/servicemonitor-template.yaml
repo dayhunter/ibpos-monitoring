@@ -21,4 +21,4 @@ spec:
     - _PROJECT_
   selector:
     matchLabels:
-      orgname: _MSP_
+      _MATCH_LABEL_

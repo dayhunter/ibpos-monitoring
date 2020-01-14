@@ -8,8 +8,8 @@ If OLM is installed, a Prometheus operator can be deployed to a separate project
 
 ## Environment
 
-* Openshift 3.11 cluster deployed on IBM Cloud Infrastructure
-* IBM Blockchain Platform v2.1.0
+* Openshift 4.2.12 cluster deployed on IBM Cloud Infrastructure
+* IBM Blockchain Platform v2.1.2
 
 ## Prerequsities
 
@@ -38,15 +38,19 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
    oc new-project ibp-monitoring
    ```
 
-2. (Optional) Deploy a Prometheus operator using OLM
+2. (Optional) Deploy a Prometheus and Grafana operator using OLM
 
-   Note: This task can skip if this `prometheus-operator` exists in project
+   Note: This task can skip if this `prometheus-operator` and `grafana-operator` exists in project
 
-   Create subscription in project `ibp-monitoring`
-   ![OLM](./img/olm1.png)
+   On `OperatorHub` tab, search for `Prometheus` and Create in project `ibp-monitoring`
+   ![operator-hub-prometheus](./img/operator-hub-prometheus.png)
 
-   Choose Prometheus Operator
-   ![OLM](./img/olm2.png)
+   On `OperatorHub` tab, search for `Grafana` and Create in project `ibp-monitoring`
+   ![operator-hub-grafana](./img/operator-hub-grafana.png)
+
+   On `Installed Operators` tab, `Grafana Operator` and `Prometheus Operator` show in the table on the screen
+
+   ![prometheus-grafana-installed](./img/prometheus-grafana-installed.png)
 
 3. Create secret
 
@@ -91,6 +95,8 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
 
    Verify orgname by get `MSP` and `Port` from following command
 
+   Peer
+
    ```bash
    oc get svc --show-labels -l orgname -n <project-name>
    ```
@@ -98,26 +104,39 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
    Example:
    ```bash
    oc get svc --show-labels -l orgname -n ibp
-   NAME                TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                       AGE       LABELS
-   org1peer1-service   NodePort   172.30.246.116   <none>        7051:30445/TCP,9443:31164/TCP,8080:31137/TCP,7443:32148/TCP   49d       app.kubernetes.io/instance=ibpoeer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=org1peer1,creator=ibp,helm.sh/chart=ibm-ibp,orgname=org1msp,release=operator
-   org1peer3-service   NodePort   172.30.50.37     <none>        7051:31166/TCP,9443:32422/TCP,8080:32119/TCP,7443:30392/TCP   37d       app.kubernetes.io/instance=ibpoeer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=org1peer3,creator=ibp,helm.sh/chart=ibm-ibp,orgname=org1msp,release=operator
-   oskrgfu1-service    NodePort   172.30.213.217   <none>        7050:31787/TCP,8443:31642/TCP,8080:31558/TCP,7443:30354/TCP   49d       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=oskrgfu1,creator=ibp,helm.sh/chart=ibm-ibp,orgname=osmsp,release=operator
-   oskrgfu2-service    NodePort   172.30.100.244   <none>        7050:32626/TCP,8443:30471/TCP,8080:32475/TCP,7443:30468/TCP   49d       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=oskrgfu2,creator=ibp,helm.sh/chart=ibm-ibp,orgname=osmsp,release=operator
-   oskrgfu3-service    NodePort   172.30.181.74    <none>        7050:30008/TCP,8443:32180/TCP,8080:31279/TCP,7443:30907/TCP   49d       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=oskrgfu3,creator=ibp,helm.sh/chart=ibm-ibp,orgname=osmsp,release=operator
-   oskrgfu4-service    NodePort   172.30.120.240   <none>        7050:32427/TCP,8443:31489/TCP,8080:31176/TCP,7443:31910/TCP   49d       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=oskrgfu4,creator=ibp,helm.sh/chart=ibm-ibp,orgname=osmsp,release=operator
-   oskrgfu5-service    NodePort   172.30.9.238     <none>        7050:31280/TCP,8443:31244/TCP,8080:31171/TCP,7443:31937/TCP   49d       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=oskrgfu5,creator=ibp,helm.sh/chart=ibm-ibp,orgname=osmsp,release=operator
+   NAME        TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                       AGE       LABELS
+   peer1org1   NodePort   10.107.187.170   <none>        7051:32230/TCP,9443:32484/TCP,8080:31825/TCP,7443:31925/TCP   41m       app.kubernetes.io/instance=ibppeer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=peer1org1,creator=ibp,orgname=org1msp
    ```
- 
-   You will find `orgname=osmsp`, `orgname=org1msp` and port `8443`, `9443`. Replace 2 values in the command to generate Service Monitor config file.
+
+   You will find `orgname=org1msp` and port `9443`. Replace value in the command to generate Service Monitor config file.
+
+   Ordering Service
 
    ```bash
-   bash generate-service-monitor.sh <project-name> <msp> <port>
+   oc get svc --show-labels -l orderingservice -n <project-name>
    ```
 
    Example:
    ```bash
-   bash generate-service-monitor.sh ibp osmsp 8443
-   bash generate-service-monitor.sh ibp org1msp 9443
+   oc get svc --show-labels -l orderingservice -n ibp
+   NAME                   TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                       AGE       LABELS
+   orderingservicenode1   NodePort   10.110.172.238   <none>        7050:31582/TCP,8443:30667/TCP,8080:31028/TCP,7443:31379/TCP   33m       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=orderingservicenode1,creator=ibp,orderingnode=node1,orderingservice=orderingservice,parent=orderingservice
+   orderingservicenode2   NodePort   10.100.100.77    <none>        7050:30717/TCP,8443:32029/TCP,8080:30141/TCP,7443:31574/TCP   33m       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=orderingservicenode2,creator=ibp,orderingnode=node2,orderingservice=orderingservice,parent=orderingservice
+   orderingservicenode3   NodePort   10.107.3.16      <none>        7050:30413/TCP,8443:32695/TCP,8080:32502/TCP,7443:30493/TCP   33m       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=orderingservicenode3,creator=ibp,orderingnode=node3,orderingservice=orderingservice,parent=orderingservice
+   orderingservicenode4   NodePort   10.109.86.219    <none>        7050:30508/TCP,8443:32329/TCP,8080:31293/TCP,7443:30528/TCP   33m       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=orderingservicenode4,creator=ibp,orderingnode=node4,orderingservice=orderingservice,parent=orderingservice
+   orderingservicenode5   NodePort   10.104.93.76     <none>        7050:30500/TCP,8443:32089/TCP,8080:32510/TCP,7443:30928/TCP   32m       app.kubernetes.io/instance=ibporderer,app.kubernetes.io/managed-by=ibp-operator,app.kubernetes.io/name=ibp,app=orderingservicenode5,creator=ibp,orderingnode=node5,orderingservice=orderingservice,parent=orderingservice
+   ```
+ 
+   You will find `orderingservice=orderingservice` and port `8443`. Replace value in the command to generate Service Monitor config file.
+
+   ```bash
+   bash generate-service-monitor.sh <project-name> <msp> <port> <matchLabels>
+   ```
+
+   Example:
+   ```bash
+   bash generate-service-monitor.sh ibp osmsp 8443 'orderingservice: orderingservice'
+   bash generate-service-monitor.sh ibp org1msp 9443 'orgname: org1msp'
    ```
 
 8. Update `Prometheus` config
@@ -200,20 +219,50 @@ Retrieving metrics from the peer and orderer requires mutual TLS authentication,
 
    ![Screenshot](./img/prom-ss.png)
 
+17. Create `Grafana Data Source (Prometheus)`
+
+Note: Please verify that you have Grafana Operator installed
+
+   ```bash
+   oc apply -f prometheus-datasources.yaml
+   ```
+
+   On `ibp-monitoring` project, in `Installed Operators` tab -> `Grafana Operator`. On `Grafana Data Source`. Datasouce has been created and show in the table on the screen. Name will be `<project-name>-prometheus-datasources`
+
+   ![datasource-created](./img/datasource-created.png)
+
+
 ## (Optional) Grafana Deployment
 
 Note: This task can skip if Grafana exists in cluster
 
-1. In `grafana.yaml`, search for `GF_SECURITY_ADMIN_USER` and change the value to your Openshift username
-
-2. Deploy `Grafana`
+1. Deploy `Grafana`
 
    ```bash
-   oc apply -f grafana-ibp.yaml
+   cd ibpos-monitoring
+   oc apply -f ./grafana-config/ibp-grafana.yaml
    ```
 
-3. Visit grafana endpoint and login using Openshift credential. To retrieve address:
+   On `ibp-monitoring` project, in `Installed Operators` tab -> `Grafana Operator`. On `Grafana`. Grafana has been created and show in the table on the screen. 
+
+   ![grafana-created](./img/grafana-created.png)
+
+2. Visit grafana endpoint and login using Openshift credential. To retrieve address:
   
    ```bash
-   echo "https://$(oc get routes grafana-ibp -n ibp-monitoring -o json | jq -r .spec.host)"
+   echo "https://$(oc get routes grafana-route -n ibp-monitoring -o json | jq -r .spec.host)"
    ```
+
+### (Optional) Grafana Dashboard
+
+Note: This task can skip if Grafana Dashboard exists in cluster
+
+1. Deploy `Grafana Dashboard`
+
+   ```bash
+   cd ibpos-monitoring
+   oc apply -f ./grafana-config/ibp-dashboard.yaml
+   ```
+   On `ibp-monitoring` project, in `Installed Operators` tab -> `Grafana Operator`. On `Grafana Dashboard`. Dashboard has been created and show in the table on the screen. 
+
+   ![dashboard-created](./img/dashboard-created.png)

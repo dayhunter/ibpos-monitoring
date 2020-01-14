@@ -6,7 +6,7 @@ metadata:
   name: _PROJECT_
   namespace: ibp-monitoring
 spec:
-  baseImage: registry.redhat.io/openshift3/prometheus
+  baseImage: registry.redhat.io/openshift4/ose-prometheus
   containers:
   - args:
     - -provider=openshift
@@ -26,7 +26,7 @@ spec:
     - -openshift-ca=/etc/pki/tls/cert.pem
     - -openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
     - -skip-auth-regex=^/metrics
-    image: registry.redhat.io/openshift3/oauth-proxy:v3.11.146
+    image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.2.11-201912100122
     name: prometheus-proxy
     ports:
     - containerPort: 9091
@@ -67,5 +67,5 @@ spec:
             storage: 10Gi
         storageClassName: portworx-sc
       status: {}
-  tag: v3.11.141-2
+  tag: v4.2.11-201912100122
   version: v2.3.2
